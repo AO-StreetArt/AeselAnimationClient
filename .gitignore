@@ -1,2 +1,5 @@
 docs/_build/
 *.pyc
+test1/
+test2/
+test3/

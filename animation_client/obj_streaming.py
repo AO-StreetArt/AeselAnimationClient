@@ -58,7 +58,7 @@ def listen_for_object_updates(general_api_wrapper, updates_queue):
 def send_object_updates(general_api_wrapper, object_api_wrapper, event_client, updates_queue):
     if general_api_wrapper.is_udp_sender_active():
         addon_prefs = general_api_wrapper.get_addon_preferences()
-        for elt in object_api_wrapper.iterate_over_active_objects():
+        for elt in object_api_wrapper.iterate_over_live_objects():
             obj = bpy.data.objects[elt[1]]
             print("Sending UDP update for object %s" % elt[1])
             aesel_obj = AeselObject()
