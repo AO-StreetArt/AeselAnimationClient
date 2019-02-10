@@ -22,7 +22,7 @@ from aesel.AeselTransactionClient import AeselTransactionClient
 from aesel.model.AeselAssetRelationship import AeselAssetRelationship
 from aesel.model.AeselObject import AeselObject
 
-def _create_aesel_object(general_api_wrapper, object_api_wrapper, transaction_client, updates_queue, new_obj):
+def _create_aesel_object(general_api_wrapper, portation_api_wrapper, object_api_wrapper, transaction_client, updates_queue, new_obj):
     scene_key = general_api_wrapper.get_current_scene_id()
     active_obj = object_api_wrapper.get_active_object()
 
@@ -36,7 +36,7 @@ def _create_aesel_object(general_api_wrapper, object_api_wrapper, transaction_cl
                        'aesel_obj_key': obj_response_json["objects"][0]["key"]})
 
     # Post an Asset
-    new_asset_key = save_selected_as_obj_asset(new_obj.name, True, export_file=False)
+    new_asset_key = save_selected_as_obj_asset(general_api_wrapper, portation_api_wrapper, transaction_client, new_obj.name, True, export_file=False)
 
     # Post a new Asset Relationship
     new_relation = AeselAssetRelationship()
@@ -47,7 +47,7 @@ def _create_aesel_object(general_api_wrapper, object_api_wrapper, transaction_cl
 
     print(response_json)
 
-def _initiate_create_aesel_obj_flow(general_api_wrapper, object_api_wrapper, transaction_client, updates_queue):
+def _initiate_create_aesel_obj_flow(general_api_wrapper, portation_api_wrapper, object_api_wrapper, transaction_client):
     active_obj = object_api_wrapper.get_active_object()
     # First, we need to save the current transform, and move the object
     # to (0,0,0) so that it exports correctly
@@ -69,7 +69,12 @@ def _initiate_create_aesel_obj_flow(general_api_wrapper, object_api_wrapper, tra
     active_obj.set_scale_x(0.0)
     active_obj.set_scale_y(0.0)
     active_obj.set_scale_z(0.0)
-    save_selected_as_obj_asset(active_obj.name, True, post_asset=False)
+    save_selected_as_obj_asset(general_api_wrapper,
+                               portation_api_wrapper,
+                               transaction_client,
+                               active_obj.name,
+                               True,
+                               post_asset=False)
     # Move the object back
     active_obj.set_location_x(current_location[0])
     active_obj.set_location_y(current_location[1])
@@ -83,7 +88,7 @@ def _initiate_create_aesel_obj_flow(general_api_wrapper, object_api_wrapper, tra
 
     # Build an Aesel Object
     new_obj = AeselObject()
-    new_obj.name = obj.name
+    new_obj.name = active_obj.name
     new_obj.type = "mesh"
     new_obj.subtype = "custom"
     new_obj.scene = general_api_wrapper.get_current_scene_id()

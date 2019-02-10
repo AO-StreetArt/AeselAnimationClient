@@ -44,23 +44,23 @@ def _add_aesel_scene(transaction_client, updates_queue, key, name, tags):
 
 def _update_aesel_scene(general_api_wrapper, transaction_client, updates_queue, name, tags):
     # Get the key of the selected scene in the list
-    selected_key = general_api_wrapper.get_selected_scene(context)
+    selected_key = general_api_wrapper.get_selected_scene()
 
     # Build a new Aesel scene
     new_scene = AeselScene()
-    if self.scene_name != "":
-        new_scene.name = self.scene_name
-    if self.scene_tag != "":
-        new_scene.tags = self.scene_tag.split(",")
+    if name != "":
+        new_scene.name = name
+    if tags != "":
+        new_scene.tags = tags.split(",")
 
     # Send the request
-    response_json = transaction_client.update_scene(selected_key, scene)
-    scene.key = key
-    updates_queue.put({'type': 'list_update', 'data': scene})
+    response_json = transaction_client.update_scene(selected_key, new_scene)
+    new_scene.key = selected_key
+    updates_queue.put({'type': 'list_update', 'data': new_scene})
     print(response_json)
 
 def _delete_aesel_scene(general_api_wrapper, transaction_client, updates_queue):
-    selected_key = general_api_wrapper.get_selected_scene(context)
+    selected_key = general_api_wrapper.get_selected_scene()
 
     response_json = transaction_client.delete_scene(selected_key)
     print(response_json)
@@ -85,8 +85,10 @@ def _find_aesel_scenes(transaction_client, updates_queue, key, name, tags):
 def _register_aesel_device(general_api_wrapper, transaction_client, updates_queue):
     addon_prefs = general_api_wrapper.get_addon_preferences()
 
+    selected_key = general_api_wrapper.get_selected_scene()
+
     # Set the current Scene ID to the selected one
-    general_api_wrapper.set_current_scene_id(general_api_wrapper.get_selected_scene())
+    general_api_wrapper.set_current_scene_id(selected_key)
     general_api_wrapper.set_current_scene_name(general_api_wrapper.get_selected_scene_name())
 
     # Build the user device for registration
@@ -118,13 +120,13 @@ def _register_aesel_device(general_api_wrapper, transaction_client, updates_queu
             asset_file.write(content)
 
         # Put the file path onto a queue to be imported on the main thread
-        aesel_updates_queue.put({"filename": filename,
-                                 "type": "asset_import",
-                                 "relationship_type": asset["relationshipType"],
-                                 "relationship_subtype": asset["relationshipSubtype"],
-                                 "assetId": asset["assetId"],
-                                 "assetSubId": asset["assetSubId"],
-                                 "relatedId": asset["relatedId"]})
+        updates_queue.put({"filename": filename,
+                           "type": "asset_import",
+                           "relationship_type": asset["relationshipType"],
+                           "relationship_subtype": asset["relationshipSubtype"],
+                           "assetId": asset["assetId"],
+                           "assetSubId": asset["assetSubId"],
+                           "relatedId": asset["relatedId"]})
 
     # Download Objects
     obj_query = AeselObject()
@@ -177,21 +179,21 @@ def _deregister_aesel_device(general_api_wrapper, transaction_client, updates_qu
     # Queue a message to clear the viewport of objects on the main thread
     updates_queue.put({'type': 'viewport_clear'})
 
-def _save_scene_asset(general_api_wrapper, transaction_client, asset_name, asset_public):
+def _save_scene_asset(general_api_wrapper, portation_api_wrapper, transaction_client, asset_name, asset_public):
     # Get the scene to save the asset against
     scene_key = general_api_wrapper.get_selected_scene()
     if general_api_wrapper.get_current_scene_id() is not None and general_api_wrapper.get_current_scene_id() != '':
         scene_key = general_api_wrapper.get_current_scene_id()
 
     # Post the file to Aesel
-    new_key = save_selected_as_obj_asset(transaction_client, asset_name, asset_public)
+    new_key = save_selected_as_obj_asset(general_api_wrapper, portation_api_wrapper, transaction_client, asset_name, asset_public)
     print("Exported New Asset with Key %s" % new_key)
 
     # Post a new Asset Relationship
     new_relation = AeselAssetRelationship()
     new_relation.asset = new_key
     new_relation.type = "scene"
-    new_relation.related = scene_id
+    new_relation.related = scene_key
     response_json = transaction_client.save_asset_relationship(new_relation)
 
     print(response_json)

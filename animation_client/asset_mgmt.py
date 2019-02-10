@@ -65,13 +65,15 @@ def save_scene_as_blend_asset(general_api_wrapper,
                               transaction_client,
                               name,
                               public):
+    addon_prefs = general_api_wrapper.get_addon_preferences()
+    
     # Create the Asset Metadata
     metadata = gen_asset_metadata(name, "blend", public)
 
     # Determine the base path to save to
-    root_file_path = general_api_wrapper.get_assets_file_path(general_api_wrapper.get_current_scene_name(),
-                                                              general_api_wrapper.get_executable_filepath(),
-                                                              addon_prefs.asset_file_location)
+    root_file_path = get_assets_file_path(general_api_wrapper.get_current_scene_name(),
+                                          general_api_wrapper.get_executable_filepath(),
+                                          addon_prefs.asset_file_location)
 
     # Export the blender object to a blend file
     target_file = os.path.join(root_file_path, name + '.blend')

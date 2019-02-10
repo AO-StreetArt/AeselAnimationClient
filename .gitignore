@@ -3,3 +3,5 @@ docs/_build/
 test1/
 test2/
 test3/
+*.blend
+*.obj

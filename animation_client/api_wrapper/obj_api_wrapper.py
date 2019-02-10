@@ -99,6 +99,9 @@ class Object3dInterface(object):
     def set_transform(self, transform):
         self.transform = transform
 
+    def get_transform(self):
+        return self.transform
+
 
 class ObjectApiWrapper(object):
     get_active_object = None

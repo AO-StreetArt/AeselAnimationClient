@@ -48,7 +48,7 @@ def test_obj_import():
                                                                  "transform": [0.0]})
     assert(active_object.get_name() == "test")
     assert(active_object.get_property("key") == "123")
-    assert(len(active_object.transform))
+    assert(len(active_object.transform) > 0)
 
 @patch('aesel.AeselTransactionClient.AeselTransactionClient')
 def test_obj_export(MockTransactionClient):
@@ -69,3 +69,35 @@ def test_obj_export(MockTransactionClient):
     new_key = save_selected_as_obj_asset(general_api_wrapper,
                                          portation_api_wrapper,
                                          mock_client, "name", True)
+
+def test_blend_import():
+    # Set up our mocks
+    portation_api_wrapper = PortationApiWrapper()
+    portation_api_wrapper.import_blend_file = MagicMock()
+
+    # Run the test
+    import_blend_asset(portation_api_wrapper, {"filename": "test.txt", "dataname": "cube"})
+
+    portation_api_wrapper.import_blend_file.assert_called_with("test.txt", "cube")
+
+@patch('aesel.AeselTransactionClient.AeselTransactionClient')
+def test_blend_export(MockTransactionClient):
+    # Set up our mocks
+    addon_prefs = AddonPreferences()
+    addon_prefs.asset_file_location = "."
+    general_api_wrapper = GeneralApiWrapper()
+    general_api_wrapper.get_addon_preferences = MagicMock(return_value=addon_prefs)
+    general_api_wrapper.get_current_scene_name = MagicMock(return_value="testScene")
+    general_api_wrapper.get_executable_filepath = MagicMock(return_value="test")
+
+    portation_api_wrapper = PortationApiWrapper()
+    portation_api_wrapper.export_blend_file = MagicMock()
+
+    mock_client = MockTransactionClient()
+
+    # Run the test
+    response = save_scene_as_blend_asset(general_api_wrapper,
+                                         portation_api_wrapper,
+                                         mock_client, "test", True)
+
+    portation_api_wrapper.export_blend_file.assert_called_with("test/testScene/test.blend")
