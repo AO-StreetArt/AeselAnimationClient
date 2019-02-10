@@ -44,8 +44,7 @@ def aesel_queue_monitor(general_api_wrapper, object_api_wrapper, portation_api_w
 
         elif data_dict['type'] == 'viewport_clear':
             # select all objects.
-            for object in object_api_wrapper.iterate_over_all_objects():
-                object.set_selection(True)
+            object_api_wrapper.select_all()
 
             # remove all selected.
             object_api_wrapper.delete_selected_objects()

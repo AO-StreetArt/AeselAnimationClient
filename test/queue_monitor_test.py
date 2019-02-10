@@ -107,7 +107,7 @@ def test_obj3d_updates(update_queue, general_api_wrapper, object_api_wrapper, po
                                       [6.0, 5.0, 4.0],
                                       [2.0, 2.0, 2.0],
                                       [])
-    object_api_wrapper.iterate_over_all_objects = MagicMock(return_value=[active_object])
+    object_api_wrapper.select_all = MagicMock()
     object_api_wrapper.get_object_by_name = MagicMock(return_value=active_object)
     object_api_wrapper.add_live_object = MagicMock()
     object_api_wrapper.remove_live_object = MagicMock()
@@ -131,7 +131,7 @@ def test_obj3d_updates(update_queue, general_api_wrapper, object_api_wrapper, po
                         portation_api_wrapper,
                         update_queue)
 
-    object_api_wrapper.iterate_over_all_objects.assert_called()
+    object_api_wrapper.select_all.assert_called()
     object_api_wrapper.delete_selected_objects.assert_called()
 
     # Test Object Lock
