@@ -15,92 +15,106 @@ limitations under the License.
 """
 
 class Object3dInterface(object):
-    def __init__(self, name, props, is_selected, location, erotation, scale, transform):
-        self.name = name
-        self.properties = props
-        self.is_selected = is_selected
-        self.location = location
-        self.erotation = erotation
-        self.scale = scale
-        self.transform = transform
+    def __init__(self, name, props, is_selected, location, erotation, scale, transform, parent, type):
+        self._name = name
+        self._properties = props
+        self._is_selected = is_selected
+        self._location = location
+        self._erotation = erotation
+        self._scale = scale
+        self._transform = transform
+        self._parent = parent
+        self._type = type
+
+    def get_type(self):
+        return self._type
+
+    def set_type(self, new_type):
+        self._type = new_type
+
+    def get_parent(self):
+        return self._parent
+
+    def set_parent(self, new_parent):
+        self._parent = new_parent
 
     def get_name(self):
-        return self.name
+        return self._name
 
     def set_name(self, new_name):
-        self.name = new_name
+        self._name = new_name
 
     def get_property(self, prop_name):
-        return self.properties[prop_name]
+        return self._properties[prop_name]
 
     def set_property(self, prop_name, prop_val):
-        self.properties[prop_name] = prop_val
+        self._properties[prop_name] = prop_val
 
     def set_selection(self, selection):
-        self.is_selected = selection
+        self._is_selected = selection
 
     def selected(self):
-        return self.is_selected
+        return self._is_selected
 
     def get_location_x(self):
-        return self.location[0]
+        return self._location[0]
 
     def set_location_x(self, new_loc):
-        self.location[0] = new_loc
+        self._location[0] = new_loc
 
     def get_location_y(self):
-        return self.location[1]
+        return self._location[1]
 
     def set_location_y(self, new_loc):
-        self.location[1] = new_loc
+        self._location[1] = new_loc
 
     def get_location_z(self):
-        return self.location[2]
+        return self._location[2]
 
     def set_location_z(self, new_loc):
-        self.location[2] = new_loc
+        self._location[2] = new_loc
 
     def get_erotation_x(self):
-        return self.erotation[0]
+        return self._erotation[0]
 
     def set_erotation_x(self, new_rot):
-        self.erotation[0] = new_rot
+        self._erotation[0] = new_rot
 
     def get_erotation_y(self):
-        return self.erotation[1]
+        return self._erotation[1]
 
     def set_erotation_y(self, new_rot):
-        self.erotation[1] = new_rot
+        self._erotation[1] = new_rot
 
     def get_erotation_z(self):
-        return self.erotation[2]
+        return self._erotation[2]
 
     def set_erotation_z(self, new_rot):
-        self.erotation[2] = new_rot
+        self._erotation[2] = new_rot
 
     def get_scale_x(self):
-        return self.scale[0]
+        return self._scale[0]
 
     def set_scale_x(self, new_scl):
-        self.scale[0] = new_scl
+        self._scale[0] = new_scl
 
     def get_scale_y(self):
-        return self.scale[1]
+        return self._scale[1]
 
     def set_scale_y(self, new_scl):
-        self.scale[1] = new_scl
+        self._scale[1] = new_scl
 
     def get_scale_z(self):
-        return self.scale[2]
+        return self._scale[2]
 
     def set_scale_z(self, new_scl):
-        self.scale[2] = new_scl
+        self._scale[2] = new_scl
 
     def set_transform(self, transform):
-        self.transform = transform
+        self._transform = transform
 
     def get_transform(self):
-        return self.transform
+        return self._transform
 
 
 class ObjectApiWrapper(object):
@@ -111,3 +125,4 @@ class ObjectApiWrapper(object):
     add_live_object = None
     remove_live_object = None
     iterate_over_live_objects = None
+    iterate_over_selected_objects = None

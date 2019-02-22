@@ -77,10 +77,13 @@ def test_scene_registration(MockTransactionClient, update_queue):
                                                           "name": "testAsset",
                                                           "relationshipType": "test1",
                                                           "relationshipSubtype": "test2",
-                                                          "relatedId": "abc"}]
+                                                          "relatedId": "12345"}]
+    mock_client.bulk_query_asset_metadata.return_value = [{"fileType": "blend",
+                                                           "key": "123"}]
     mock_client.get_asset.return_value = b'abcdefghijklmnop'
     mock_client.object_query.return_value = {"objects": [{"key": "12345",
                                                           "name": "testName",
+                                                          "parent": MagicMock(),
                                                           "transform": []}]}
     addon_prefs = AddonPreferences()
     addon_prefs.asset_file_location = "."
@@ -102,13 +105,18 @@ def test_scene_registration(MockTransactionClient, update_queue):
 
     assert(not update_queue.empty())
     data_dict = update_queue.get()
+    print(data_dict)
     assert(data_dict["type"] == "asset_import")
-    assert(data_dict["relationship_type"] == "test1")
+    assert(data_dict["dataMap"][0]["relationshipType"] == "test1")
 
     assert(not update_queue.empty())
     data_dict2 = update_queue.get()
     assert(data_dict2["type"] == "asset_import")
-    assert(data_dict2["relationship_type"] == "test1")
+    assert(data_dict2["dataMap"][0]["relationshipType"] == "test1")
+
+    assert(not update_queue.empty())
+    data_dict3 = update_queue.get()
+    assert(data_dict3["type"] == "parent_updates")
 
     # Run the deregistration test
     _deregister_aesel_device(general_api_wrapper, mock_client, update_queue)
@@ -124,6 +132,7 @@ def test_save_scene_asset(MockTransactionClient, update_queue):
 
     addon_prefs = AddonPreferences()
     addon_prefs.asset_file_location = "."
+    addon_prefs.asset_file_type = "blend"
 
     general_api_wrapper = GeneralApiWrapper()
     general_api_wrapper.get_addon_preferences = MagicMock(return_value=addon_prefs)
@@ -132,10 +141,20 @@ def test_save_scene_asset(MockTransactionClient, update_queue):
     general_api_wrapper.get_current_scene_name = MagicMock(return_value="testScene")
     general_api_wrapper.get_selected_scene = MagicMock(return_value="testKey")
     general_api_wrapper.get_selected_scene_name = MagicMock(return_value="testScene")
-    general_api_wrapper.set_current_scene_id = MagicMock("testKey")
-    general_api_wrapper.set_current_scene_name = MagicMock(return_value="testScene")
+    general_api_wrapper.set_current_scene_id = MagicMock()
+    general_api_wrapper.set_current_scene_name = MagicMock()
+
+    object_api_wrapper = ObjectApiWrapper()
+    active_object = Object3dInterface("name",
+                                      {"key": "123"},
+                                      True,
+                                      [1.0, 2.0, 3.0],
+                                      [6.0, 5.0, 4.0],
+                                      [2.0, 2.0, 2.0],
+                                      [], None, "")
+    object_api_wrapper.iterate_over_selected_objects = MagicMock(return_value=[active_object])
 
     portation_api_wrapper = PortationApiWrapper()
-    portation_api_wrapper.export_obj_file = MagicMock()
+    portation_api_wrapper.export_blend_file = MagicMock()
 
-    _save_scene_asset(general_api_wrapper, portation_api_wrapper, mock_client, "testAsset", True)
+    _save_scene_asset(general_api_wrapper, object_api_wrapper, portation_api_wrapper, mock_client, "testAsset", True)

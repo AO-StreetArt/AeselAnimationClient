@@ -38,7 +38,7 @@ def test_obj_import():
                                       (0.0, 0.0, 0.0),
                                       (0.0, 0.0, 0.0),
                                       (0.0, 0.0, 0.0),
-                                      [])
+                                      [], None, None)
     object_api_wrapper.get_active_object = MagicMock(return_value=active_object)
 
     # Run the test
@@ -48,7 +48,7 @@ def test_obj_import():
                                                                  "transform": [0.0]})
     assert(active_object.get_name() == "test")
     assert(active_object.get_property("key") == "123")
-    assert(len(active_object.transform) > 0)
+    assert(len(active_object.get_transform()) > 0)
 
 @patch('aesel.AeselTransactionClient.AeselTransactionClient')
 def test_obj_export(MockTransactionClient):
@@ -75,10 +75,26 @@ def test_blend_import():
     portation_api_wrapper = PortationApiWrapper()
     portation_api_wrapper.import_blend_file = MagicMock()
 
-    # Run the test
-    import_blend_asset(portation_api_wrapper, {"filename": "test.txt", "dataname": "cube"})
+    object_api_wrapper = ObjectApiWrapper()
+    active_object = Object3dInterface("cube",
+                                      {},
+                                      True,
+                                      (0.0, 0.0, 0.0),
+                                      (0.0, 0.0, 0.0),
+                                      (0.0, 0.0, 0.0),
+                                      [], None, None)
+    object_api_wrapper.iterate_over_selected_objects = MagicMock(return_value=[active_object])
+    object_api_wrapper.get_object_by_name = MagicMock(return_value=active_object)
 
-    portation_api_wrapper.import_blend_file.assert_called_with("test.txt", "cube")
+    # Run the test
+    import_blend_asset(object_api_wrapper,
+                       portation_api_wrapper,
+                       {"filename": "test.txt",
+                       "dataname": "cube",
+                       "scene": "1",
+                       "dataMap": [{"name": "cube", "key": "testKey", "assetSubId": "cube", "transform": []}]})
+
+    portation_api_wrapper.import_blend_file.assert_called_with("test.txt", ["cube"])
 
 @patch('aesel.AeselTransactionClient.AeselTransactionClient')
 def test_blend_export(MockTransactionClient):
