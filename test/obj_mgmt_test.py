@@ -63,30 +63,32 @@ def test_obj_crud(MockTransactionClient, update_queue):
                                       [1.0, 2.0, 3.0],
                                       [6.0, 5.0, 4.0],
                                       [2.0, 2.0, 2.0],
-                                      [])
+                                      [], MagicMock(), "")
     object_api_wrapper.get_active_object = MagicMock(return_value=active_object)
+    object_api_wrapper.iterate_over_selected_objects = MagicMock(return_value=[active_object])
     object_api_wrapper.delete_selected_objects = MagicMock()
 
     portation_api_wrapper = PortationApiWrapper()
     portation_api_wrapper.export_obj_file = MagicMock()
+    portation_api_wrapper.export_blend_file = MagicMock()
 
     # Test Object Create flow
-    new_obj = _initiate_create_aesel_obj_flow(general_api_wrapper,
+    new_objs = _initiate_create_aesel_obj_flow(general_api_wrapper,
                                               portation_api_wrapper,
                                               object_api_wrapper,
                                               mock_client)
 
-    assert(new_obj.name == "name")
-    assert(new_obj.scene == "testKey")
-    assert(new_obj.translation == [1.0, 2.0, 3.0])
-    assert(new_obj.euler_rotation == [6.0, 5.0, 4.0])
-    assert(new_obj.scale == [2.0, 2.0, 2.0])
+    assert(new_objs[0].name == "name")
+    assert(new_objs[0].scene == "testKey")
+    assert(new_objs[0].translation == [1.0, 2.0, 3.0])
+    assert(new_objs[0].euler_rotation == [6.0, 5.0, 4.0])
+    assert(new_objs[0].scale == [2.0, 2.0, 2.0])
 
     _create_aesel_object(general_api_wrapper,
                          portation_api_wrapper,
                          object_api_wrapper,
                          mock_client,
-                         update_queue, new_obj)
+                         update_queue, new_objs)
 
     assert(not update_queue.empty())
     data_dict = update_queue.get()
@@ -119,7 +121,7 @@ def test_obj_locking(MockTransactionClient, update_queue):
                                       [1.0, 2.0, 3.0],
                                       [6.0, 5.0, 4.0],
                                       [2.0, 2.0, 2.0],
-                                      [])
+                                      [], None, "")
     object_api_wrapper.get_active_object = MagicMock(return_value=active_object)
 
     # Execute Lock Test

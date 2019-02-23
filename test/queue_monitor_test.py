@@ -23,6 +23,7 @@ from unittest.mock import MagicMock, patch
 from ..animation_client.api_wrapper.general_api_wrapper import AddonPreferences, GeneralApiWrapper
 from ..animation_client.api_wrapper.portation_api_wrapper import PortationApiWrapper
 from ..animation_client.api_wrapper.obj_api_wrapper import ObjectApiWrapper, Object3dInterface
+from ..animation_client.obj_tree import Obj3dNode
 
 from ..animation_client.queue_monitor import aesel_queue_monitor
 
@@ -106,7 +107,7 @@ def test_obj3d_updates(update_queue, general_api_wrapper, object_api_wrapper, po
                                       [1.0, 2.0, 3.0],
                                       [6.0, 5.0, 4.0],
                                       [2.0, 2.0, 2.0],
-                                      [])
+                                      [], None, None)
     object_api_wrapper.select_all = MagicMock()
     object_api_wrapper.get_object_by_name = MagicMock(return_value=active_object)
     object_api_wrapper.add_live_object = MagicMock()
@@ -163,3 +164,18 @@ def test_obj3d_updates(update_queue, general_api_wrapper, object_api_wrapper, po
                         update_queue)
 
     object_api_wrapper.get_object_by_name.assert_called_with("name")
+
+    # Test parent updates
+    root_node = Obj3dNode({"parent":"", "name":"1"})
+    child_node = Obj3dNode({"parent":"1", "name":"2"})
+    child_node.children.append(Obj3dNode({"parent":"2", "name":"3"}))
+    root_node.children.append(child_node)
+    update_queue.put({"type": "parent_updates",
+                      "objectTree": [root_node]})
+
+    aesel_queue_monitor(general_api_wrapper,
+                        object_api_wrapper,
+                        portation_api_wrapper,
+                        update_queue)
+
+    object_api_wrapper.get_object_by_name.assert_called_with("3")

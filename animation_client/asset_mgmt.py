@@ -39,14 +39,29 @@ def import_obj_asset(object_api_wrapper, portation_api_wrapper, ops):
     if "transform" in ops:
         imported_blender_object.set_transform(ops["transform"])
 
-def import_blend_asset(portation_api_wrapper, ops):
+def import_blend_asset(object_api_wrapper, portation_api_wrapper, ops):
     filename = ops["filename"]
-    data_name = None
-    if "dataname" in ops:
-        data_name = ops["dataname"]
+    data_names = [asset_relation["assetSubId"] for asset_relation in ops["dataMap"]]
+    aesel_name = None
+    if "name" in ops:
+        aesel_name = ops["name"]
+    else:
+        aesel_name = "scene_%s" % ops["scene"]
 
     # Load the data from the blend file
-    portation_api_wrapper.import_blend_file(filename, data_name)
+    portation_api_wrapper.import_blend_file(filename, data_names)
+
+    # Update imported objects
+    for asset_relation in ops["dataMap"]:
+        if "name" in asset_relation and "key" in asset_relation:
+            name = asset_relation["name"]
+            imported_blender_object = object_api_wrapper.get_object_by_name(name)
+
+            # Set the transform on each object
+            imported_blender_object.set_transform(asset_relation["transform"])
+
+            # Set the key on each object
+            imported_blender_object.set_property("key", asset_relation["key"])
 
 # Exports
 # Generate an instance of asset metadata to save
@@ -66,7 +81,7 @@ def save_scene_as_blend_asset(general_api_wrapper,
                               name,
                               public):
     addon_prefs = general_api_wrapper.get_addon_preferences()
-    
+
     # Create the Asset Metadata
     metadata = gen_asset_metadata(name, "blend", public)
 

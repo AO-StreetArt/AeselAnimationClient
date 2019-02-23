@@ -92,7 +92,8 @@ def test_updates_send(MockEventClient, update_queue):
                                       [1.0, 2.0, 3.0],
                                       [6.0, 5.0, 4.0],
                                       [2.0, 2.0, 2.0],
-                                      [[1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0]])
+                                      [[1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 1.0]],
+                                      None, "")
     object_api_wrapper.iterate_over_live_objects = MagicMock(return_value=[("123", "name")])
     object_api_wrapper.get_object_by_name = MagicMock(return_value=active_object)
 

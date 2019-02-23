@@ -16,6 +16,13 @@ limitations under the License.
 
 from .asset_mgmt import import_obj_asset, import_blend_asset
 
+def _make_parent(object_api_wrapper, current_node, parent_node):
+    parent_obj = object_api_wrapper.get_object_by_name(parent_node.obj_ref['name'])
+    obj = object_api_wrapper.get_object_by_name(current_node.obj_ref['name'])
+    obj.set_parent(parent_obj)
+    for child_node in current_node.iter_children():
+        _make_parent(object_api_wrapper, child_node, current_node)
+
 # Monitor a queue for updates to make to the main viewport on the main thread.
 def aesel_queue_monitor(general_api_wrapper, object_api_wrapper, portation_api_wrapper, updates_queue):
     while not updates_queue.empty():
@@ -29,10 +36,12 @@ def aesel_queue_monitor(general_api_wrapper, object_api_wrapper, portation_api_w
 
         elif data_dict['type'] == 'list_add':
             # Populate the Scene List in the UI
-            general_api_wrapper.add_to_scenes_ui_list(data_dict['data'].name, data_dict['data'].key)
+            general_api_wrapper.add_to_scenes_ui_list(data_dict['data'].name,
+                                                      data_dict['data'].key)
 
         elif data_dict['type'] == 'list_update':
-            general_api_wrapper.update_scenes_ui_list(data_dict['data'].name, data_dict['data'].key)
+            general_api_wrapper.update_scenes_ui_list(data_dict['data'].name,
+                                                      data_dict['data'].key)
 
         elif data_dict['type'] == 'list_delete':
             general_api_wrapper.remove_from_scenes_ui_list(data_dict['data'])
@@ -40,7 +49,8 @@ def aesel_queue_monitor(general_api_wrapper, object_api_wrapper, portation_api_w
         elif data_dict['type'] == 'list_set':
             general_api_wrapper.clear_scenes_ui_list()
             for scene in data_dict['data']['scenes']:
-                general_api_wrapper.add_to_scenes_ui_list(scene['name'], scene['key'])
+                general_api_wrapper.add_to_scenes_ui_list(scene['name'],
+                                                          scene['key'])
 
         elif data_dict['type'] == 'viewport_clear':
             # select all objects.
@@ -52,13 +62,18 @@ def aesel_queue_monitor(general_api_wrapper, object_api_wrapper, portation_api_w
         elif data_dict['type'] == 'asset_import':
             # Actually call the import operator(s)
             if data_dict["filename"].endswith(".obj"):
-                import_obj_asset(general_api_wrapper,
+                import_obj_asset(object_api_wrapper,
                                  portation_api_wrapper,
                                  data_dict)
             elif data_dict["filename"].endswith(".blend"):
-                import_blend_asset(general_api_wrapper,
+                import_blend_asset(object_api_wrapper,
                                    portation_api_wrapper,
                                    data_dict)
+
+        elif data_dict['type'] == 'parent_updates':
+            for root_obj in data_dict['objectTree']:
+                for child_node in root_obj.iter_children():
+                    _make_parent(object_api_wrapper, child_node, root_obj)
 
         elif data_dict['type'] == 'lock_object':
             object_api_wrapper.add_live_object(data_dict['obj_name'], data_dict['obj_key'])
